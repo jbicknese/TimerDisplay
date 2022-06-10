@@ -22,7 +22,7 @@ static AlarmDisplayItem_T items[] =
 #undef ALARM_MACRO
 };
 
-static String day_strings[2][7] =
+static String day_strings[2][END_OF_WEEK] =
 {
    {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"},
    {"S","M","T","W","T","F","S"}
