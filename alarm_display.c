@@ -4,17 +4,12 @@
 #include "buttons.h"
 #include "app_api.h"
 
-#define ONE_SECOND 1000 // ms
-#define ONE_MINUTE 60 // sec
-#define ONE_HOUR 60 // min
-#define ONE_DAY 24 // hr
-
-//static TimeOfDay clock = {11, 5, 9, PM, SATURDAY};
 static TimeOfDay clock = {3, 3, 0, PM, FRIDAY};
 
 static Alarm alarms[] =
 {
-#define ALARM_INIT_MACRO(n,h,t,o,m,d,on,out) {{h, t, o, m, d}, on, out},
+#define ALARM_INIT_MACRO(n,h,t,o,m,sun,mon,tue,wed,thu,fri,sat,on,out) \
+   {{h, t, o, m, END_OF_WEEK}, {sun,mon,tue,wed,thu,fri,sat}, on, out},
 #include "alarm_display_config.h"
 #undef ALARM_INIT_MACRO
 };
@@ -27,15 +22,10 @@ static AlarmDisplayItem_T items[] =
 #undef ALARM_MACRO
 };
 
-static String days[] =
+static String day_strings[2][7] =
 {
-   "Sun",
-   "Mon",
-   "Tue",
-   "Wed",
-   "Thu",
-   "Fri",
-   "Sat"
+   {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"},
+   {"S","M","T","W","T","F","S"}
 };
 
 static String meridiem_indicators[] =
@@ -163,7 +153,7 @@ static void render(Alarm_E active_alarm, UInt8_T colon_flash)
    DrawBox(101, 18, 2, 2);
    DrawBox(101, 22, 2, 2);
 
-   for(i = 0; i < NUMBER_OF_ITEMS; i++)
+   for(i = NUMBER_OF_ITEMS; i--;)
    {
       SetFont(items[i].font);
       if(i == selected_index)
@@ -190,9 +180,15 @@ static void render(Alarm_E active_alarm, UInt8_T colon_flash)
       else if(items[i].control == NUMBER_OF_ITEMS ||
          (items[i].control != NUMBER_OF_ITEMS && *items[items[i].control].data))
       {
-         if(items[i].type == Weekday)
+         if(items[i].type == Weekday && items[i].control == NUMBER_OF_ITEMS) // Clock day
          {
-            PrintF(items[i].x_pos, items[i].y_pos, "%s", days[*items[i].data]);
+            PrintF(items[i].x_pos, items[i].y_pos, "%s", day_strings[0][*items[i].data]);
+         }
+         else if(items[i].type == Weekday) // Alarm day
+         {
+            // Use the index to determine which day we're printing
+            PrintF(items[i].x_pos, items[i].y_pos, *items[i].data ? "%s" : "",
+               day_strings[1][(i - Alarm1_Sunday) % ITEMS_PER_ALARM]);
          }
          else if(items[i].type == AmPm)
          {
@@ -234,14 +230,14 @@ static Alarm_E check_alarms(void)
    {
       // Solenoids warm but not dangerously when powered for 1 minute
       if(alarms[i].on &&
-         alarms[i].time.day          == clock.day &&
+         alarms[i].days[clock.day] == TRUE &&
          alarms[i].time.am_pm        == clock.am_pm &&
          alarms[i].time.hours        == clock.hours &&
          alarms[i].time.minutes_tens == clock.minutes_tens &&
          alarms[i].time.minutes_ones == clock.minutes_ones)
       {
          SetCommand(alarms[i].output_device, TRUE);
-         active_alarm = i;
+         active_alarm = (Alarm_E)i;
       }
       else
       {
@@ -265,7 +261,10 @@ void Alarm_Display_Init(void)
 void Alarm_Display_Task(void)
 {
    UInt8_T colon_flash = run_clock();
+
    Alarm_E active_alarm = check_alarms();
+
    process_button_inputs();
+
    render(active_alarm, colon_flash);
 }
