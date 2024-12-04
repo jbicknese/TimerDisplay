@@ -1,8 +1,8 @@
 
 #ifdef ALARM_INIT_MACRO
-//               Name,   Time,         Sun,  Mon,  Tue,  Wed,  Thu,  Fri,  Sat,  On,    Output driver
-ALARM_INIT_MACRO(Alarm1, 11, 0, 0, AM, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,  OUT_1)
-ALARM_INIT_MACRO(Alarm2,  6, 3, 0, AM, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,  OUT_2)
+//               Name,   Time,         Sun,  Mon,  Tue,  Wed,  Thu,  Fri,  Sat,  On,    State
+ALARM_INIT_MACRO(Alarm1, 11, 0, 0, AM, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,  AlarmOff)
+ALARM_INIT_MACRO(Alarm2,  6, 3, 0, AM, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, AlarmOff)
 #endif
 
 #ifdef ALARM_MACRO

@@ -4,7 +4,17 @@
 #include "hwconfig.h"
 #include "SPI_LCD/lcd_api.h"
 #include "OutputDriver/OutputDriver.h"
+#include "app_api.h"
 
+#ifdef UNIT_TEST
+#define UNIT_TEST_STATIC
+#else
+#define UNIT_TEST_STATIC static
+#endif
+
+#define BUTTON_IS_PRESSED (ReadVar(SensorInput) < BUTTON_PRESSED_THRESHOLD)
+
+#define HALF_SECOND 500 // ms
 #define ONE_SECOND 1000 // ms
 #define ONE_MINUTE 60 // sec
 #define ONE_HOUR 60 // min
@@ -14,7 +24,8 @@
 
 #define ITEMS_PER_ALARM 12
 
-typedef const char * String;
+typedef const char * string;
+typedef unsigned char boolean_T;
 
 typedef enum
 {
@@ -45,6 +56,13 @@ typedef enum
 
 typedef enum
 {
+   AlarmOff = 0,
+   RunningIgnoreInput,
+   Running
+} Alarm_State_E;
+
+typedef enum
+{
 #define ALARM_MACRO(a,b,c,d,e,f,g,h) a,
 #include "alarm_display_config.h"
 #undef ALARM_MACRO
@@ -53,7 +71,7 @@ typedef enum
 
 typedef enum
 {
-#define ALARM_INIT_MACRO(n,h,t,o,m,sun,mon,tue,wed,thu,fri,sat,on,out) n,
+#define ALARM_INIT_MACRO(n,h,t,o,m,sun,mon,tue,wed,thu,fri,sat,on,st) n,
 #include "alarm_display_config.h"
 #undef ALARM_INIT_MACRO
    NUMBER_OF_ALARMS
@@ -82,9 +100,9 @@ typedef struct
 typedef struct
 {
    TimeOfDay time;
-   UInt8_T days[END_OF_WEEK];
-   UInt8_T on;
-   enum Output_Device_E output_device;
+   boolean_T days[END_OF_WEEK];
+   boolean_T on;
+   Alarm_State_E state;
 } Alarm;
 
 #endif
